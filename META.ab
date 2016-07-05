@@ -1,0 +1,8 @@
+version = "$(pkg_version)"
+description = "A small library to perform http requests using Async_kernel on JavaScript platforms. "
+requires = "async_kernel js_of_ocaml sexplib"
+archive(byte  ) = "async_http_js.cma"
+archive(native) = "async_http_js.cmxa"
+plugin(byte  ) = "async_http_js.cma"
+plugin(native) = "async_http_js.cmxs"
+exists_if = "async_http_js.cma"
