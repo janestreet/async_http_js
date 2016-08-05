@@ -1,0 +1,9 @@
+(library (
+  (name async_http_js)
+  (public_name async_http_js)
+  (preprocess (((pps (ppx_js_driver ppx_sexp_conv ppx_sexp_value)) All)))
+  (libraries (
+    async_kernel
+    js_of_ocaml
+  ))
+))
