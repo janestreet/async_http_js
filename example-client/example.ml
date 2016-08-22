@@ -29,6 +29,7 @@ type state =
 
 type update =
   | New_value of string
+  | Set_value
 
 let style props =
   Vdom.Attr.create "style"
@@ -37,6 +38,17 @@ let style props =
 ;;
 
 let event_reader, event_writer = Pipe.create ()
+
+module Event = Vdom.Event.Define
+    (struct
+      module Action = struct
+        type t = update
+      end
+
+      let handle = Pipe.write_without_pushback event_writer
+    end)
+
+let inject = Event.inject
 
 let view state =
   let open Vdom in
@@ -53,18 +65,7 @@ let view state =
             ]
             []
         ; Node.button
-            [ Attr.on_click (fun _e ->
-                Js.Opt.iter (Dom_html.(CoerceTo.input (getElementById "entry")))
-                  (fun input ->
-                     let value = Js.to_string input##.value in
-                     don't_wait_for (
-                       set ~key:state.key ~value
-                       >>= fun () ->
-                       Pipe.write event_writer
-                         (New_value value)
-                     )
-                  )
-              )
+            [ Attr.on_click (fun _e -> inject Set_value)
             ]
             [Node.text "set the value"]
         ]
@@ -75,6 +76,17 @@ let update u state =
   match u with
   | New_value v ->
     { state with value = v }
+  | Set_value ->
+    Js.Opt.iter (Dom_html.(CoerceTo.input (getElementById "entry")))
+      (fun input ->
+         let value = Js.to_string input##.value in
+         don't_wait_for (
+           set ~key:state.key ~value
+           >>| fun () ->
+           Pipe.write_without_pushback event_writer (New_value value)
+         )
+      );
+    state
 ;;
 
 let run_app ~initial_state ~updates ~view =
